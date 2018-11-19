@@ -286,8 +286,11 @@ def classify(words, classes, sentence):
     """Classifies a sentence by examining known words and classes and loading our calculated weights (synapse values)."""
     error_threshold = 0.2
     results = get_output_layer(words, sentence)
+    print("results1:", results)
     results = [[i,r] for i,r in enumerate(results) if r>error_threshold ]
+    print("results2:", results)
     results.sort(key=lambda x: x[1], reverse=True)
+    print("results3:", results)
     return_results =[[classes[r[0]],r[1]] for r in results]
     print("Sentence to classify: {0}\nClassification: {1}".format(sentence, return_results))
     return return_results
