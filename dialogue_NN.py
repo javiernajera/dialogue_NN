@@ -30,26 +30,20 @@ def create_training_data(stems, classes, documents):
 
     for document in documents:
 
-        bag = [0]*len(stems)
-        target = []
+        bag = [0]*len(stems)   # initialize every bag as all 0s
+
+        target = [0] * len(classes)
         quote = document[0]
         character = document[1]
 
         for i in range(len(stems)):
             word = stems[i]
-            if word in quote:
+            if word in quote:   # if the word in the sentence is in the stems, change to a 1
                 bag[i] = 1
 
-        if character in classes:
+        if character in classes:  # only if character is expected
             index = classes.index(document[1])
-            for x in range(len(classes)):
-                if x == index:
-                    target.append(1)
-                else:
-                    target.append(0)
-        else:
-            for x in range(len(classes)):
-                target.append(0)
+            target[index] = 1   # store that char at this index said sentence
 
         training_data.append(bag)
         output.append(target)
@@ -83,7 +77,6 @@ def get_raw_training_data(fileName):
     return raw_training_data
 
 
-
 def organize_raw_training_data(training_data, stemmer):
     """Stem every word in the training data."""
     words = []
@@ -92,7 +85,9 @@ def organize_raw_training_data(training_data, stemmer):
     for element in training_data:
         tokens = nltk.word_tokenize(element['sentence'])
         person = element['person']
-        words.extend(tokens)
+        for word in tokens:
+            if word not in words:
+                words.append(word)
         documents.append((tokens, person))
         if person not in classes:
             classes.append(person)
@@ -103,22 +98,20 @@ def organize_raw_training_data(training_data, stemmer):
 
 
 
-
 def main():
 
     stemmer = LancasterStemmer()
+
     raw_training_data = get_raw_training_data('dialogue_data.csv')
+
     words, documents, classes = organize_raw_training_data(raw_training_data, stemmer)
 
     training_data, output = create_training_data(words, classes, documents)
 
-
-
-
     start_training(words, classes, training_data, output)
 
     results = classify(words, classes, "will you look into the mirror?")
-    print("return results:", results)
+
 
 
 
