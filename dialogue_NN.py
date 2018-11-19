@@ -9,6 +9,34 @@ import time
 import re
 
 
+def create_training_data(stems, classes, documents):
+    training_data = []
+    output = []
+    size = len(classes)
+    for document in documents:
+        bag = []
+        target = []
+        for word in document[0]:
+            if word in stems:
+                bag.append(1)
+            else:
+                bag.append(0)
+        if document[0] in classes:
+            index = classes.index(document[0])
+            for x in range(size)
+                if x == index:
+                    target.append(1)
+                else:
+                    target.append(0)
+        else:
+            for x in range(size):
+                target.append(0)
+
+
+        training_data.append(bag)
+        output.append(target)
+return training_data, output
+
 
 def preprocess_words(words, stemmer):
     stem_list = []
@@ -40,10 +68,11 @@ def organize_raw_training_data(training_data, stemmer):
         tokens = nltk.word_tokenize(element['sentence'])
         person = element['person']
         words.extend(tokens)
-        documents.append((person, tokens))
+        documents.append((tokens, person))
         if person not in classes:
             classes.append(person)
 
+    words = preprocess_words(words, stemmer)
     return words, documents, classes
 
 
