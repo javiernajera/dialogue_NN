@@ -210,6 +210,9 @@ def main():
     print(documents)
     print(classes)
 
+    #TODO: WE NEED TO FIGURE OUT WHAT 'OUTPUT' IS FOR START_TRAINING
+    #TODO: WE NEED TO CLASSIFY NEW SENTENCES
+
 
 
 
