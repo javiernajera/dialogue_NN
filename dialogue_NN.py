@@ -93,6 +93,15 @@ def organize_raw_training_data(training_data, stemmer):
     return words, documents, classes
 
 
+def print_nicely(sentence, results):
+    """Print expected results in an easily formattable way"""
+    probability = results[0][1]
+    probability = probability * 100
+    probability = round(probability, 1)
+    character = results[0][0]
+
+    print('We expect with {0}% confidence that {1} said the sentence "{2}"'.format(
+        probability, character, sentence))
 
 
 def main():
@@ -111,7 +120,12 @@ def main():
     # find appropriate synapse weights
     start_training(words, classes, training_data, output)
 
-    classify(words, classes, "will you look into the mirror?")
+    # CHANGE THIS TO USE NN TO CLASSIFY DIFFERENT SENTENCE
+    example_sentence = "will you look into the mirror?"
+
+    results = classify(words, classes, example_sentence)
+
+    print_nicely(example_sentence, results)
 
 
 
@@ -280,13 +294,13 @@ def classify(words, classes, sentence):
     """Classifies a sentence by examining known words and classes and loading our calculated weights (synapse values)."""
     error_threshold = 0.2
     results = get_output_layer(words, sentence)
-    print("results1:", results)
+
     results = [[i,r] for i,r in enumerate(results) if r>error_threshold ]
-    print("results2:", results)
+
     results.sort(key=lambda x: x[1], reverse=True)
-    print("results3:", results)
+
     return_results =[[classes[r[0]],r[1]] for r in results]
-    print("Sentence to classify: {0}\nClassification: {1}".format(sentence, return_results))
+
     return return_results
 
 
