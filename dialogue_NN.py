@@ -92,7 +92,9 @@ def organize_raw_training_data(training_data, stemmer):
     for element in training_data:
         tokens = nltk.word_tokenize(element['sentence'])
         person = element['person']
-        words.extend(tokens)
+        for word in tokens:
+            if word not in words:
+                words.append(word)
         documents.append((tokens, person))
         if person not in classes:
             classes.append(person)
