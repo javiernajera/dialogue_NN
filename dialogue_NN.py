@@ -8,74 +8,6 @@ import numpy as np
 import time
 import re
 
-
-def create_training_data(stems, classes, documents):
-    training_data = []
-    output = []
-    size = len(classes)
-    for document in documents:
-        bag = []
-        target = []
-        for word in document[0]:
-            if word in stems:
-                bag.append(1)
-            else:
-                bag.append(0)
-        if document[0] in classes:
-            index = classes.index(document[0])
-            for x in range(size):
-                if x == index:
-                    target.append(1)
-                else:
-                    target.append(0)
-        else:
-            for x in range(size):
-                target.append(0)
-
-
-        training_data.append(bag)
-        output.append(target)
-    return training_data, output
-
-
-def preprocess_words(words, stemmer):
-    stem_list = []
-    for word in words:
-        if word not in stem_list and word is not "?":
-            stem_list.append(stemmer.stem(word))
-
-    return stem_list
-
-def get_raw_training_data(fileName):
-    raw_training_data = []
-
-    pattern = re.compile('"(.*)","(.*)"')
-    with open(fileName, newline='') as csvfile:
-        dialogue = csv.reader(csvfile, delimiter=' ', quotechar='|')
-        for row in dialogue:
-            text = ' '.join(row)
-            match = pattern.match(text)
-            raw_training_data.append({"person": match.group(1), "sentence": match.group(2)})
-
-            #raw_training_data.append({"person" : text_arr[0], "sentence" : text_arr[1]})
-    return raw_training_data
-
-def organize_raw_training_data(training_data, stemmer):
-    words = []
-    documents = []
-    classes = []
-    for element in training_data:
-        tokens = nltk.word_tokenize(element['sentence'])
-        person = element['person']
-        words.extend(tokens)
-        documents.append((tokens, person))
-        if person not in classes:
-            classes.append(person)
-
-    words = preprocess_words(words, stemmer)
-    return words, documents, classes
-
-
 def sigmoid(z):
     return 1 / (1 + np.exp(-z))
 
@@ -169,11 +101,10 @@ def save_synapses(filename, words, classes, synapse_0, synapse_1):
                'words': words,
                'classes': classes
               }
-    synapse_file = "synapses.json"
 
-    with open(synapse_file, 'w') as outfile:
+    with open(filename, 'w') as outfile:
         json.dump(synapse, outfile, indent=4, sort_keys=True)
-    print("Saved synapses to:", synapse_file)
+    print("Saved synapses to:", filename)
 
 
 def train(X, y, words, classes, hidden_neurons=10, alpha=1, epochs=50000):
@@ -200,19 +131,138 @@ def start_training(words, classes, training_data, output):
     elapsed_time = time.time() - start_time
     print("Processing time:", elapsed_time, "seconds")
 
+def create_training_data(stems, classes, documents):
+    training_data = []
+    output = []
+    size = len(classes)
+    for document in documents:
+        bag = []
+        target = []
+        for word in document[0]:
+            if word in stems:
+                bag.append(1)
+            else:
+                bag.append(0)
+        if document[1] in classes:
+            index = classes.index(document[1])
+            for x in range(size):
+                if x == index:
+                    target.append(1)
+                else:
+                    target.append(0)
+        else:
+            for x in range(size):
+                target.append(0)
+
+
+        training_data.append(bag)
+        output.append(target)
+    return training_data, output
+
+
+def preprocess_words(words, stemmer):
+    stem_list = []
+    for word in words:
+        if word not in stem_list and word is not "?":
+            stem_list.append(stemmer.stem(word))
+
+    return stem_list
+
+def get_raw_training_data(fileName):
+    raw_training_data = []
+
+    pattern = re.compile('"(.*)","(.*)"')
+    with open(fileName, newline='') as csvfile:
+        dialogue = csv.reader(csvfile, delimiter=' ', quotechar='|')
+        for row in dialogue:
+            text = ' '.join(row)
+            match = pattern.match(text)
+            raw_training_data.append({"person": match.group(1), "sentence": match.group(2)})
+
+            #raw_training_data.append({"person" : text_arr[0], "sentence" : text_arr[1]})
+    return raw_training_data
+
+def organize_raw_training_data(training_data, stemmer):
+    words = []
+    documents = []
+    classes = []
+    for element in training_data:
+        tokens = nltk.word_tokenize(element['sentence'])
+        person = element['person']
+        words.extend(tokens)
+        documents.append((tokens, person))
+        if person not in classes:
+            classes.append(person)
+
+    words = preprocess_words(words, stemmer)
+    return words, documents, classes
+
+
+def bow(sentence, words):
+    """Return bag of words for a sentence."""
+    stemmer = LancasterStemmer()
+
+    # Break each sentence into tokens and stem each token.
+    sentence_words = [stemmer.stem(word.lower()) for word in nltk.word_tokenize(sentence)]
+
+    # Create the bag of words.
+    bag = [0]*len(words)
+    for s in sentence_words:
+        for i,w in enumerate(words):
+            if w == s:
+                bag[i] = 1
+    return (np.array(bag))
+
+
+def get_output_layer(words, sentence):
+    """Open our saved weights from training and use them to predict based on
+    our bag of words for the new sentence to classify."""
+
+    # Load calculated weights.
+    synapse_file = "synapses.json"
+    with open(synapse_file) as data_file:
+        synapse = json.load(data_file)
+        synapse_0 = np.asarray(synapse['synapse0'])
+        synapse_1 = np.asarray(synapse['synapse1'])
+
+    # Retrieve our bag of words for the sentence.
+    x = bow(sentence.lower(), words)
+    # This is our input layer (which is simply our bag of words for the sentence).
+    l0 = x
+    # Perform matrix multiplication of input and hidden layer.
+    l1 = sigmoid(np.dot(l0, synapse_0))
+    # Create the output layer.
+    l2 = sigmoid(np.dot(l1, synapse_1))
+    return l2
+
+
+def classify(words, classes, sentence):
+    """Classifies a sentence by examining known words and classes and loading our calculated weights (synapse values)."""
+    error_threshold = 0.2
+    results = get_output_layer(words, sentence)
+    results = [[i,r] for i,r in enumerate(results) if r>error_threshold ]
+    results.sort(key=lambda x: x[1], reverse=True)
+    return_results =[[classes[r[0]],r[1]] for r in results]
+    print("\nSentence to classify: {0}\nClassification: {1}".format(sentence, return_results))
+    return return_results
+
+
+
 
 def main():
 
     stemmer = LancasterStemmer()
     raw_training_data = get_raw_training_data('dialogue_data.csv')
     words, documents, classes = organize_raw_training_data(raw_training_data, stemmer)
-    print(words)
-    print(documents)
-    print(classes)
 
-    #TODO: WE NEED TO FIGURE OUT WHAT 'OUTPUT' IS FOR START_TRAINING
-    #TODO: WE NEED TO CLASSIFY NEW SENTENCES
+    training_data, output = create_training_data(words, classes, documents)
 
+    print(training_data)
+    print('output:', output)
+
+    start_training(words, classes, training_data, output)
+
+    # classify(words, classes, "will you look into the mirror?")
 
 
 
