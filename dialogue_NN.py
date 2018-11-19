@@ -24,18 +24,15 @@ def create_training_data(stems, classes, documents):
     which words in a given sentence already are in the corpus."""
     training_data = []
     output = []
-    print("len stems:", len(stems))
-    print("len docs:", len(documents))
 
-
-    for document in documents:
+    for document in documents:  # for every sentence / speaker pair
 
         bag = [0]*len(stems)   # initialize every bag as all 0s
+        target = [0] * len(classes)  # initialize every line in 'output' as 0s
+        quote = document[0]  # the quote
+        character = document[1]  # the character w/ the quote
 
-        target = [0] * len(classes)
-        quote = document[0]
-        character = document[1]
-
+        # bag creation
         for i in range(len(stems)):
             word = stems[i]
             if word in quote:   # if the word in the sentence is in the stems, change to a 1
