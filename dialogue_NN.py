@@ -30,16 +30,15 @@ def create_training_data(stems, classes, documents):
 
     for document in documents:
 
-        bag = []
+        bag = [0]*len(stems)
         target = []
         quote = document[0]
         character = document[1]
 
-        for word in stems:
+        for i in range(len(stems)):
+            word = stems[i]
             if word in quote:
-                bag.append(1)
-            else:
-                bag.append(0)
+                bag[i] = 1
 
         if character in classes:
             index = classes.index(document[1])
@@ -118,7 +117,8 @@ def main():
 
     start_training(words, classes, training_data, output)
 
-    # classify(words, classes, "will you look into the mirror?")
+    results = classify(words, classes, "will you look into the mirror?")
+    print("return results:", results)
 
 
 
@@ -289,7 +289,7 @@ def classify(words, classes, sentence):
     results = [[i,r] for i,r in enumerate(results) if r>error_threshold ]
     results.sort(key=lambda x: x[1], reverse=True)
     return_results =[[classes[r[0]],r[1]] for r in results]
-    print("\nSentence to classify: {0}\nClassification: {1}".format(sentence, return_results))
+    print("Sentence to classify: {0}\nClassification: {1}".format(sentence, return_results))
     return return_results
 
 
