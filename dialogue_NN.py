@@ -23,7 +23,7 @@ def create_training_data(stems, classes, documents):
                 bag.append(0)
         if document[0] in classes:
             index = classes.index(document[0])
-            for x in range(size)
+            for x in range(size):
                 if x == index:
                     target.append(1)
                 else:
@@ -35,7 +35,7 @@ def create_training_data(stems, classes, documents):
 
         training_data.append(bag)
         output.append(target)
-return training_data, output
+    return training_data, output
 
 
 def preprocess_words(words, stemmer):
@@ -76,6 +76,12 @@ def organize_raw_training_data(training_data, stemmer):
     return words, documents, classes
 
 
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+
+def sigmoid_output_to_derivative(output):
+    return output * (1-output)
 
 def main():
     # nltk.download('punkt')
