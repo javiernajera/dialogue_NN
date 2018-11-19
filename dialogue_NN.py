@@ -34,13 +34,17 @@ def get_raw_training_data(fileName):
 
 def organize_raw_training_data(training_data, stemmer):
     words = []
+    documents = []
+    classes = []
     for element in training_data:
-        print(element)
-        print(element['sentence'])
+        tokens = nltk.word_tokenize(element['sentence'])
+        person = element['person']
+        words.extend(tokens)
+        documents.append((person, tokens))
+        if person not in classes:
+            classes.append(person)
 
-        words.append(element['sentence'])
-
-
+    return words, documents, classes
 
 
 
@@ -48,7 +52,11 @@ def main():
     # nltk.download('punkt')
     stemmer = LancasterStemmer()
     raw_training_data = get_raw_training_data('dialogue_data.csv')
-    organize_raw_training_data(raw_training_data, stemmer)
+    words, documents, classes = organize_raw_training_data(raw_training_data, stemmer)
+    print(words)
+    print(documents)
+    print(classes)
+
 
 if __name__ == "__main__":
     main()
