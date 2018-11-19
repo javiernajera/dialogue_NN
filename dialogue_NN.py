@@ -24,6 +24,9 @@ def create_training_data(stems, classes, documents):
     which words in a given sentence already are in the corpus."""
     training_data = []
     output = []
+    print("len stems:", len(stems))
+    print("len docs:", len(documents))
+
 
     for document in documents:
 
@@ -32,11 +35,12 @@ def create_training_data(stems, classes, documents):
         quote = document[0]
         character = document[1]
 
-        for word in quote:
-            if word in stems:
+        for word in stems:
+            if word in quote:
                 bag.append(1)
             else:
                 bag.append(0)
+
         if character in classes:
             index = classes.index(document[1])
             for x in range(len(classes)):
@@ -55,6 +59,7 @@ def create_training_data(stems, classes, documents):
 
 
 def preprocess_words(words, stemmer):
+    """Create list of stemmed words."""
     stem_list = []
     for word in words:
         if word not in stem_list and word is not "?":
@@ -64,8 +69,9 @@ def preprocess_words(words, stemmer):
 
 
 def get_raw_training_data(fileName):
+    """Open raw data and add words to a raw data file in the format
+    {person: [person], sentence: [sentence]}"""
     raw_training_data = []
-
     pattern = re.compile('"(.*)","(.*)"')
     with open(fileName, newline='') as csvfile:
         dialogue = csv.reader(csvfile, delimiter=' ', quotechar='|')
@@ -77,7 +83,10 @@ def get_raw_training_data(fileName):
             #raw_training_data.append({"person" : text_arr[0], "sentence" : text_arr[1]})
     return raw_training_data
 
+
+
 def organize_raw_training_data(training_data, stemmer):
+    """Stem every word in the training data."""
     words = []
     documents = []
     classes = []
@@ -104,12 +113,8 @@ def main():
 
     training_data, output = create_training_data(words, classes, documents)
 
-    print("training data:", training_data)
-    X = np.array(training_data)
-    print("X:", X)
 
-    print("X.shape:", X.shape)
-    # print('output:', output)
+
 
     start_training(words, classes, training_data, output)
 
@@ -134,7 +139,6 @@ def init_synapses(X, hidden_neurons, classes):
 def feedforward(X, synapse_0, synapse_1):
     """Feed forward through layers 0, 1, and 2."""
     layer_0 = X
-
     layer_1 = sigmoid(np.dot(layer_0, synapse_0))
     layer_2 = sigmoid(np.dot(layer_1, synapse_1))
     return layer_0, layer_1, layer_2
@@ -228,6 +232,8 @@ def start_training(words, classes, training_data, output):
     start_time = time.time()
     X = np.array(training_data)
     y = np.array(output)
+
+
 
     train(X, y, words, classes, hidden_neurons=20, alpha=0.1, epochs=100000)
 
