@@ -69,8 +69,6 @@ def get_raw_training_data(fileName):
             text = ' '.join(row)
             match = pattern.match(text)
             raw_training_data.append({"person": match.group(1), "sentence": match.group(2)})
-
-            #raw_training_data.append({"person" : text_arr[0], "sentence" : text_arr[1]})
     return raw_training_data
 
 
@@ -79,6 +77,8 @@ def organize_raw_training_data(training_data, stemmer):
     words = []
     documents = []
     classes = []
+
+    # create stems
     for element in training_data:
         tokens = nltk.word_tokenize(element['sentence'])
         person = element['person']
@@ -99,15 +99,19 @@ def main():
 
     stemmer = LancasterStemmer()
 
+    # download from file
     raw_training_data = get_raw_training_data('dialogue_data.csv')
 
+    # stem words and create classes
     words, documents, classes = organize_raw_training_data(raw_training_data, stemmer)
 
+    # organize training data and expected outputs
     training_data, output = create_training_data(words, classes, documents)
 
+    # find appropriate synapse weights
     start_training(words, classes, training_data, output)
 
-    results = classify(words, classes, "will you look into the mirror?")
+    classify(words, classes, "will you look into the mirror?")
 
 
 
